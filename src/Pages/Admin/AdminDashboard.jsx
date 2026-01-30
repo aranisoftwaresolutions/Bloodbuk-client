@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 import { motion } from 'framer-motion';
-import { BarChart } from '../../components/Admin/Chart';
-import DashboardTable from '../../components/Admin/DashboardTable';
+import { BarChart } from '../../Components/Admin/Chart';
+import DashboardTable from '../../Components/Admin/DashboardTable';
 import AdminSidebar from '../../Components/Admin/AdminSidebar';
 
 import DarkModeIcon from '@mui/icons-material/DarkMode';
