@@ -52,7 +52,6 @@ const messages = [
 const TopNav = ({ showTopNav }) => {
   const [index, setIndex] = useState(0);
 
-  // cycle every 4s
   useEffect(() => {
     if (!showTopNav) return;
     const id = setInterval(
@@ -84,13 +83,43 @@ const TopNav = ({ showTopNav }) => {
   );
 };
 
+// Logo Skeleton Component
+const LogoSkeleton = () => (
+  <div className="h-12 w-32 bg-gray-200 rounded-md animate-pulse relative overflow-hidden">
+    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+  </div>
+);
 
+// Category Skeleton Component
+const CategorySkeleton = () => (
+  <div className="space-y-2 p-4">
+    {[...Array(6)].map((_, i) => (
+      <div key={i} className="animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}>
+        <div className="flex items-center justify-between py-4 px-6">
+          <div className="h-5 bg-gray-200 rounded w-3/4 relative overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          </div>
+          <div className="h-5 w-5 bg-gray-200 rounded" />
+        </div>
+        {i % 2 === 0 && (
+          <div className="pl-12 space-y-2">
+            {[...Array(3)].map((_, j) => (
+              <div key={j} className="h-4 bg-gray-100 rounded w-2/3 ml-4 relative overflow-hidden">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+);
 
 const IconSection = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
-  const { cartItems = [] } = useSelector((state) => state.shopCart);
+  const { cartItems = [], loading: cartLoading } = useSelector((state) => state.shopCart);
   const { liveSearchResults, searchLoading } = useSelector(
     (state) => state.products
   );
@@ -178,7 +207,7 @@ const IconSection = () => {
           />
           <button
             onClick={handleSearchSubmit}
-            className="bg-gray-060 hover:gray-800 text-white p-3 rounded-r-lg transition-colors"
+            className="bg-gray-900 hover:bg-gray-800 text-white p-3 rounded-r-lg transition-colors"
           >
             <Search />
           </button>
@@ -189,10 +218,23 @@ const IconSection = () => {
             <CloseIcon />
           </button>
 
-          {(searchLoading || suggestions.length) && (
+          {(searchLoading || suggestions.length > 0) && (
             <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-b-lg max-h-96 overflow-y-auto z-50">
               {searchLoading ? (
-                <div className="p-4 text-center text-gray-500">Loading...</div>
+                <div className="p-4 space-y-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center p-3 animate-pulse">
+                      <div className="w-12 h-12 bg-gray-200 rounded-md mr-3 relative overflow-hidden">
+                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 relative overflow-hidden">
+                          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 suggestions.map((p) => (
                   <div
@@ -225,7 +267,6 @@ const IconSection = () => {
           <Search />
         </button>
       )}
-
 
       {/* Profile */}
       <div className="relative" ref={profileRef}>
@@ -309,24 +350,27 @@ const IconSection = () => {
                       Sign Up
                     </Link>
                   </li>
-
                 </>
               )}
             </ul>
           </div>
         )}
       </div>
+
+      {/* Cart */}
       <Link
         to="/cart"
         className="relative text-gray-700 hover:text-gray-600 transition-colors"
         aria-label="Cart"
       >
         <ShoppingBag />
-        {cartItems.length > 0 && (
+        {cartLoading ? (
+          <span className="absolute -top-2 -right-2 h-5 w-5 bg-gray-300 rounded-full animate-pulse" />
+        ) : cartItems.length > 0 ? (
           <span className="absolute -top-2 -right-2 bg-gray-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {cartItems.length}
           </span>
-        )}
+        ) : null}
       </Link>
     </div>
   );
@@ -335,8 +379,8 @@ const IconSection = () => {
 const Header = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((s) => s.user);
-  const { companys } = useSelector((s) => s.company);
-  const { categories } = useSelector((s) => s.categories);
+  const { companys, loading: companyLoading } = useSelector((s) => s.company);
+  const { categories, loading: categoriesLoading } = useSelector((s) => s.categories);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -388,15 +432,19 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-grow flex justify-center md:flex-grow-0">
             <Link to="/" className="flex items-center">
-              {companys.map((c) =>
-                c.logo[0]?.url ? (
-                  <img
-                    key={c._id}
-                    src={c.logo[0].url}
-                    alt={c.name || "Logo"}
-                    className="h-12 object-contain"
-                  />
-                ) : null
+              {companyLoading ? (
+                <LogoSkeleton />
+              ) : (
+                companys.map((c) =>
+                  c.logo[0]?.url ? (
+                    <img
+                      key={c._id}
+                      src={c.logo[0].url}
+                      alt={c.name || "Logo"}
+                      className="h-12 object-contain"
+                    />
+                  ) : null
+                )
               )}
             </Link>
           </div>
@@ -434,65 +482,69 @@ const Header = () => {
             </IconButton>
           </div>
 
-          <List className="flex-grow overflow-y-auto font-sans">
-            {categories.map((cat, index) => (
-              <Fragment key={cat._id}>
-                <ListItem
-                  button
-                  onClick={() => handleExpand(cat._id)}
-                  className={`px-6 py-4 ${index !== categories.length - 1 ? "border-b border-gray-100" : ""}`}
-                >
-                  <ListItemText
-                    primary={cat.name}
-                    primaryTypographyProps={{
-                      sx: {
-                        fontSize: "17px",
-                        fontWeight: 500,
-                        textTransform: "Capitalize",
-                        letterSpacing: "4px",
-                        color: "#1F2937",
-                        fontFamily: "sans-serif",
-                      }
-                    }}
-                  />
-                  {expandedCat === cat._id ? <ExpandLess /> : <ExpandMore />}
-                </ListItem>
-                <Collapse
-                  in={expandedCat === cat._id}
-                  timeout="auto"
-                  unmountOnExit
-                >
-                  <List component="div" disablePadding>
-                    {cat.subcategories.map((sub) => (
-                      <ListItem
-                        key={sub._id}
-                        button
-                        component={Link}
-                        to={`/products?subcategory=${sub._id}`}
-                        onClick={() => setCategoryDrawerOpen(false)}
-                        className="pl-12 py-3 hover:bg-gray-50 "
-                      >
-                        <ListItemText
-                          primary={sub.name}
-                          primaryTypographyProps={{
-                            sx: {
-                              fontSize: "15px",
-                              paddingLeft: "16px",
-                              fontWeight: 400,
-                              textTransform: "capitalize",
-                              letterSpacing: "4px",
-                              fontFamily: "Inter, sans-serif",
-                              color: "#4B5563",
-                            }
-                          }}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Collapse>
-              </Fragment>
-            ))}
-          </List>
+          {categoriesLoading ? (
+            <CategorySkeleton />
+          ) : (
+            <List className="flex-grow overflow-y-auto font-sans">
+              {categories.map((cat, index) => (
+                <Fragment key={cat._id}>
+                  <ListItem
+                    button
+                    onClick={() => handleExpand(cat._id)}
+                    className={`px-6 py-4 ${index !== categories.length - 1 ? "border-b border-gray-100" : ""}`}
+                  >
+                    <ListItemText
+                      primary={cat.name}
+                      primaryTypographyProps={{
+                        sx: {
+                          fontSize: "17px",
+                          fontWeight: 500,
+                          textTransform: "Capitalize",
+                          letterSpacing: "4px",
+                          color: "#1F2937",
+                          fontFamily: "sans-serif",
+                        }
+                      }}
+                    />
+                    {expandedCat === cat._id ? <ExpandLess /> : <ExpandMore />}
+                  </ListItem>
+                  <Collapse
+                    in={expandedCat === cat._id}
+                    timeout="auto"
+                    unmountOnExit
+                  >
+                    <List component="div" disablePadding>
+                      {cat.subcategories.map((sub) => (
+                        <ListItem
+                          key={sub._id}
+                          button
+                          component={Link}
+                          to={`/products?subcategory=${sub._id}`}
+                          onClick={() => setCategoryDrawerOpen(false)}
+                          className="pl-12 py-3 hover:bg-gray-50 "
+                        >
+                          <ListItemText
+                            primary={sub.name}
+                            primaryTypographyProps={{
+                              sx: {
+                                fontSize: "15px",
+                                paddingLeft: "16px",
+                                fontWeight: 400,
+                                textTransform: "capitalize",
+                                letterSpacing: "4px",
+                                fontFamily: "Inter, sans-serif",
+                                color: "#4B5563",
+                              }
+                            }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Collapse>
+                </Fragment>
+              ))}
+            </List>
+          )}
 
           <div className="p-6 bg-gray-50 border-t border-gray-200">
             <div className="flex justify-center space-x-4 mb-4">
@@ -523,15 +575,21 @@ const Header = () => {
             </div>
 
             <div className="text-center">
-              {companys.map((c) =>
-                c.logo[0]?.url ? (
-                  <img
-                    key={c._id}
-                    src={c.logo[0].url}
-                    alt={c.name || "Logo"}
-                    className="h-16 mx-auto object-contain"
-                  />
-                ) : null
+              {companyLoading ? (
+                <div className="h-16 w-40 mx-auto bg-gray-200 rounded-md animate-pulse relative overflow-hidden">
+                  <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                </div>
+              ) : (
+                companys.map((c) =>
+                  c.logo[0]?.url ? (
+                    <img
+                      key={c._id}
+                      src={c.logo[0].url}
+                      alt={c.name || "Logo"}
+                      className="h-16 mx-auto object-contain"
+                    />
+                  ) : null
+                )
               )}
             </div>
           </div>
@@ -567,52 +625,54 @@ const Header = () => {
             </IconButton>
           </div>
 
-          <List className="flex-grow overflow-y-auto">
-            {categories.map((cat) => (
-              <Fragment key={cat._id}>
-                <ListItem
-                  button
-                  onClick={() => handleExpand(cat._id)}
-                  className="px-6 py-4 border-b border-gray-100"
-                >
-                  <ListItemText
-                    primary={cat.name}
-                    primaryTypographyProps={{
-                      className: "text-gray-900 font-medium"
-                    }}
-                  />
-                  {expandedCat === cat._id ? <ExpandLess /> : <ExpandMore />}
-                </ListItem>
-                <Collapse
-                  in={expandedCat === cat._id}
-                  timeout="auto"
-                  unmountOnExit
-                >
-                  <List component="div" disablePadding>
-                    {cat.subcategories.map((sub) => (
-                      <ListItem
-                        key={sub._id}
-                        button
-                        component={Link}
-                        to={`/products?subcategory=${sub._id}`}
-                        onClick={() => setDrawerOpen(false)}
-                        className="pl-12 py-3 hover:bg-gray-50"
-                      >
-                        <ListItemText
-                          primary={sub.name}
-                          primaryTypographyProps={{
-                            className: "text-gray-700 text-sm"
-                          }}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Collapse>
-              </Fragment>
-            ))}
-
-
-          </List>
+          {categoriesLoading ? (
+            <CategorySkeleton />
+          ) : (
+            <List className="flex-grow overflow-y-auto">
+              {categories.map((cat) => (
+                <Fragment key={cat._id}>
+                  <ListItem
+                    button
+                    onClick={() => handleExpand(cat._id)}
+                    className="px-6 py-4 border-b border-gray-100"
+                  >
+                    <ListItemText
+                      primary={cat.name}
+                      primaryTypographyProps={{
+                        className: "text-gray-900 font-medium"
+                      }}
+                    />
+                    {expandedCat === cat._id ? <ExpandLess /> : <ExpandMore />}
+                  </ListItem>
+                  <Collapse
+                    in={expandedCat === cat._id}
+                    timeout="auto"
+                    unmountOnExit
+                  >
+                    <List component="div" disablePadding>
+                      {cat.subcategories.map((sub) => (
+                        <ListItem
+                          key={sub._id}
+                          button
+                          component={Link}
+                          to={`/products?subcategory=${sub._id}`}
+                          onClick={() => setDrawerOpen(false)}
+                          className="pl-12 py-3 hover:bg-gray-50"
+                        >
+                          <ListItemText
+                            primary={sub.name}
+                            primaryTypographyProps={{
+                              className: "text-gray-700 text-sm"
+                            }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Collapse>
+                </Fragment>
+              ))}
+            </List>
+          )}
         </div>
       </Drawer>
     </header>
