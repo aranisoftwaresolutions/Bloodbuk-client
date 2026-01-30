@@ -13,6 +13,8 @@ import FirstBanners from "./Pages/Admin/Management/Banner/FirstBanners";
 import Loadertwo from "./components/Loader/Loadertwo";
 import ContactUs from "./Pages/FooterSections/ContactUS";
 
+
+
 // Lazy load pages
 const Home = lazy(() => import("./Pages/Home/Home"));
 const Products = lazy(() => import("./Pages/Products/Products"));

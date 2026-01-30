@@ -36,7 +36,8 @@
     margin: 0;
     padding: 0;
     letter-spacing: 2.3px;
-
+    /* overflow: hidden; */
+    /* overflow-y: hidden; */
 }
 
 

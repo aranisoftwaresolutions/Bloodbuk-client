@@ -1,4 +1,3 @@
-// src/components/admin/ProductManagement.jsx
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSingleProduct, updateProduct } from '../../../redux/slices/productSlices';
@@ -17,14 +16,14 @@ const ProductManagement = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Global product fields
+  // Product fields
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
 
-  // Color variants
+  // Variants state: images = [{type: "existing", url, public_id}, {type: "new", file, preview}]
   const [colorVariants, setColorVariants] = useState([]);
 
   const { product, loading, error } = useSelector(s => s.products);
@@ -48,8 +47,11 @@ const ProductManagement = () => {
       const mapped = product.colors?.map(col => ({
         colorName: col.colorName || '',
         stock: col.stock || 0,
-        files: [],
-        previews: col.photos.map(p => p.url),
+        images: col.photos.map(p => ({
+          type: "existing",
+          url: p.url,
+          public_id: p.public_id,
+        })),
         colorImageFile: null,
         colorImagePreview: col.colorImage?.url || '',
       })) || [];
@@ -57,7 +59,7 @@ const ProductManagement = () => {
     }
   }, [product]);
 
-  // Handlers for variants
+  // Handlers
   const handleVariantChange = (i, field, val) =>
     setColorVariants(v => v.map((x, idx) => idx === i ? { ...x, [field]: val } : x));
 
@@ -75,28 +77,42 @@ const ProductManagement = () => {
 
   const handleFilesUpload = (i, e) => {
     const files = Array.from(e.target.files);
-    const previews = files.map(f => URL.createObjectURL(f));
+    const images = files.map(f => ({
+      type: "new",
+      file: f,
+      preview: URL.createObjectURL(f),
+    }));
     setColorVariants(v =>
       v.map((x, idx) =>
         idx === i
-          ? { ...x, files: [...x.files, ...files], previews: [...x.previews, ...previews] }
+          ? { ...x, images: [...x.images, ...images] }
           : x
       )
     );
   };
 
-  const removeFile = (vi, fi) =>
+  // Move selected image to the first position for "default"
+  const setDefaultImage = (vi, idx) => {
     setColorVariants(v =>
-      v.map((x, idx) =>
-        idx === vi
-          ? {
-            ...x,
-            previews: x.previews.filter((_, j) => j !== fi),
-            files: x.files.filter((_, j) => j !== fi),
-          }
+      v.map((x, i) => {
+        if (i !== vi) return x;
+        const reordered = [...x.images];
+        const [img] = reordered.splice(idx, 1);
+        reordered.unshift(img);
+        return { ...x, images: reordered };
+      })
+    );
+  };
+
+  const removeImage = (vi, idx) => {
+    setColorVariants(v =>
+      v.map((x, i) =>
+        i === vi
+          ? { ...x, images: x.images.filter((_, j) => j !== idx) }
           : x
       )
     );
+  };
 
   const removeVariant = i =>
     setColorVariants(v => v.filter((_, idx) => idx !== i));
@@ -104,7 +120,7 @@ const ProductManagement = () => {
   const addVariant = () =>
     setColorVariants(v => [
       ...v,
-      { colorName: '', stock: '', files: [], previews: [], colorImageFile: null, colorImagePreview: '' },
+      { colorName: '', stock: '', images: [], colorImageFile: null, colorImagePreview: '' },
     ]);
 
   // Submit
@@ -121,11 +137,23 @@ const ProductManagement = () => {
     fd.append('subcategory', subcategory);
     fd.append('description', description);
     fd.append('numColorVariants', colorVariants.length);
+
     colorVariants.forEach((v, i) => {
       fd.append(`colorName${i}`, v.colorName || `Variant ${i + 1}`);
       fd.append(`colorStock${i}`, v.stock || 0);
       if (v.colorImageFile) fd.append(`colorImage${i}`, v.colorImageFile);
-      v.files.forEach(f => fd.append(`colorImages${i}`, f));
+
+      // Upload new files and send public_ids of existing images in order
+      v.images.forEach(img => {
+        if (img.type === "new") {
+          fd.append(`colorImages${i}`, img.file);
+        }
+      });
+      const existingIds = v.images
+        .filter(img => img.type === "existing")
+        .map(img => img.public_id)
+        .join(",");
+      fd.append(`existingColorImageIds${i}`, existingIds);
     });
 
     dispatch(updateProduct({ id: productId, updatedData: fd }))
@@ -140,10 +168,8 @@ const ProductManagement = () => {
   return (
     <div className="flex bg-gray-100 min-h-screen">
       <AdminSidebar />
-
       <main className="flex-1 p-6 lg:p-8 overflow-auto lg:pl-[258px]">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Update Product</h1>
-
         {loading ? (
           <p className="text-gray-500">Loading…</p>
         ) : error ? (
@@ -219,7 +245,6 @@ const ProductManagement = () => {
                 </div>
               </div>
             </motion.section>
-
             {/* Color Variants */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
@@ -230,7 +255,6 @@ const ProductManagement = () => {
               <div className="px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-t-2xl mb-6">
                 <h2 className="text-white text-xl font-semibold">Color Variants</h2>
               </div>
-
               <div className="space-y-8">
                 {colorVariants.map((v, i) => (
                   <div key={i} className="border border-gray-200 rounded-lg p-4 space-y-4">
@@ -246,7 +270,6 @@ const ProductManagement = () => {
                         </button>
                       )}
                     </div>
-
                     <div className="grid gap-6 md:grid-cols-2">
                       <div>
                         <label className="block text-gray-700 mb-1">Color Name</label>
@@ -288,7 +311,6 @@ const ProductManagement = () => {
                         )}
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-gray-700 mb-1">Additional Images</label>
                       <label className="flex items-center space-x-2 p-4 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
@@ -302,18 +324,40 @@ const ProductManagement = () => {
                           className="hidden"
                         />
                       </label>
-                      {v.previews.length > 0 && (
+                      {v.images.length > 0 && (
                         <div className="mt-4 grid grid-cols-3 gap-4">
-                          {v.previews.map((src, idx) => (
-                            <div key={idx} className="relative">
-                              <img src={src} alt="" className="w-full h-24 object-cover rounded-md" />
+                          {v.images.map((img, idx) => (
+                            <div key={img.type === "existing" ? img.url : img.preview} className="relative group">
+                              <img
+                                src={img.type === "existing" ? img.url : img.preview}
+                                alt=""
+                                className="w-full h-24 object-cover rounded-md"
+                              />
                               <button
                                 type="button"
-                                onClick={() => removeFile(i, idx)}
+                                onClick={() => removeImage(i, idx)}
                                 className="absolute top-1 right-1 bg-white rounded-full p-1 text-red-600 shadow hover:bg-gray-100"
                               >
                                 <FaTrash />
                               </button>
+                              <button
+                                type="button"
+                                onClick={() => setDefaultImage(i, idx)}
+                                title="Set as Default"
+                                className={
+                                  "absolute left-1 bottom-1 p-1 rounded-full transition " +
+                                  (idx === 0
+                                    ? "bg-green-600 text-white"
+                                    : "bg-white text-gray-700 border")
+                                }
+                              >
+                                ★
+                              </button>
+                              {idx === 0 && (
+                                <span className="absolute left-2 bottom-2 text-xs font-bold text-white bg-green-600 rounded px-1">
+                                  Default
+                                </span>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -321,7 +365,6 @@ const ProductManagement = () => {
                     </div>
                   </div>
                 ))}
-
                 <button
                   type="button"
                   onClick={addVariant}
@@ -331,7 +374,6 @@ const ProductManagement = () => {
                 </button>
               </div>
             </motion.section>
-
             <div className="text-center">
               <button
                 type="submit"

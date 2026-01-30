@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import AdminSidebar from '../../../Components/Admin/AdminSidebar';
 import { addProduct } from '../../../redux/slices/productSlices';
 
+
 const NewProduct = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -59,7 +60,15 @@ const NewProduct = () => {
             fd.append(`colorName${i}`, v.colorName || `Color ${i + 1}`);
             fd.append(`colorStock${i}`, v.stock || '');
             if (v.colorImageFile) fd.append(`colorImage${i}`, v.colorImageFile);
-            v.files.forEach(file => fd.append(`colorImages${i}`, file));
+
+            // Push default image file first, then the rest (excluding default)
+            if (v.files.length) {
+                const orderedFiles = [
+                    v.files[v.defaultImageIndex],
+                    ...v.files.filter((f, idx) => idx !== v.defaultImageIndex)
+                ];
+                orderedFiles.forEach(file => fd.append(`colorImages${i}`, file));
+            }
         });
 
         dispatch(addProduct(fd))
@@ -88,6 +97,8 @@ const NewProduct = () => {
         handleVariantChange(idx, 'colorImageFile', null);
         handleVariantChange(idx, 'colorImagePreview', '');
     };
+
+
     const handleFilesUpload = (idx, e) => {
         const files = Array.from(e.target.files);
         const previews = files.map(f => URL.createObjectURL(f));
@@ -286,12 +297,11 @@ const NewProduct = () => {
                                                 {v.previews.map((src, fi) => (
                                                     <div key={fi} className="relative">
                                                         <img src={src} alt="" className="w-full h-24 object-cover rounded-md" />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeFile(i, fi)}
-                                                            className="absolute top-1 right-1 bg-white rounded-full p-1 text-red-600 shadow hover:bg-gray-100"
-                                                        >
-                                                            <FaTrash />
+                                                        <button type="button" onClick={() => removeFile(i, fi)} className="..."><FaTrash /></button>
+                                                        <button type="button"
+                                                            onClick={() => handleVariantChange(i, 'defaultImageIndex', fi)}
+                                                            className={"absolute left-1 bottom-1 p-1 rounded-full " + (v.defaultImageIndex === fi ? 'bg-green-500 text-white' : 'bg-white text-gray-700')}>
+                                                            ⭐
                                                         </button>
                                                     </div>
                                                 ))}

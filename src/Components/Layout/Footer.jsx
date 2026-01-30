@@ -24,7 +24,7 @@ const Footer = () => {
             {/* Get in Touch */}
             <div className="space-y-4">
               <img
-                src={company.logo[1]?.url}
+                src=""
                 className="w-32 h-auto mb-4 object-contain"
                 alt="Company Logo"
               />

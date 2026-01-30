@@ -65,7 +65,7 @@ const AdminSidebar = () => {
     <motion.aside
       animate={{ width: collapsed ? '64px' : '250px' }}
       transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-      className="fixed top-0 left-0 h-full bg-gray-900 text-gray-300 shadow-xl flex flex-col z-30 overflow-hidden"
+      className="fixed top-0 left-0 h-full bg-gray-800 text-gray-300 shadow-xl flex flex-col z-30 overflow-hidden"
     >
       {/* Logo and toggle button */}
       <div className="flex flex-col items-center justify-between h-30 px-4">

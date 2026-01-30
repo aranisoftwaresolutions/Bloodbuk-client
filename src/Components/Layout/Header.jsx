@@ -482,7 +482,7 @@ const Header = () => {
                               textTransform: "capitalize",
                               letterSpacing: "4px",
                               fontFamily: "Inter, sans-serif",
-                              color: "#4B5563", 
+                              color: "#4B5563",
                             }
                           }}
                         />

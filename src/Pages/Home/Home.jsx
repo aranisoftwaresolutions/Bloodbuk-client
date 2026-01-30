@@ -4,7 +4,7 @@ import NewArrivalProduct from './HomeNewArrivalProduct/NewArrivalProduct';
 import SecondBanner from './SecondBanner/SecondBanner';
 import Category from './Category/Category';
 import ThirdBanner from './ThirdBanner/ThirdBanner';
-import Popup from '../../Components/Layout/Popup';
+// import Popup from '../../Components/Layout/Popup';
 
 const Home = () => {
     const siteTitle = 'Home Bloodbuck - Premium Products & Deals';
@@ -55,7 +55,7 @@ const Home = () => {
                     {JSON.stringify(structuredData)}
                 </script>
             </Helmet>
-            <Popup />
+            {/* <Popup /> */}
             <Banner />
             <Category />
             <NewArrivalProduct />
