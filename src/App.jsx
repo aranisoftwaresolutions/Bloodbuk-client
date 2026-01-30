@@ -10,7 +10,6 @@ import ChatSupport from "./Pages/Order/Contact";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminRoute from "./auth/AdminRoute";
 import FirstBanners from "./Pages/Admin/Management/Banner/FirstBanners";
-import Loadertwo from "./components/Loader/Loadertwo";
 import ContactUs from "./Pages/FooterSections/ContactUS";
 
 
@@ -65,7 +64,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <ScrollTop />
-      <Suspense fallback={<Loadertwo />}>
+      <Suspense>
         <Routes>
           {/* Public Routes */}
           <Route path="/"
