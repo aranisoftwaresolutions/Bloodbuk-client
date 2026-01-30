@@ -68,13 +68,13 @@ export const BarChart = ({
       },
       ...(data_2.length > 0
         ? [{
-            label: title_2,
-            data: data_2,
-            backgroundColor: bgColor_2,
-            barThickness: "flex",
-            barPercentage: 1,
-            categoryPercentage: 0.4,
-          }]
+          label: title_2,
+          data: data_2,
+          backgroundColor: bgColor_2,
+          barThickness: "flex",
+          barPercentage: 1,
+          categoryPercentage: 0.4,
+        }]
         : []),
     ],
   };
