@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AdminSidebar from "../../../Components/Admin/AdminSidebar";
 import { fetchLineCharts } from "../../../redux/slices/AdminChartSlices";
-import { LineChart } from "../../../components/Admin/Chart";
+import { LineChart } from "../../../Components/Admin/Chart";
 
 const LineCharts = () => {
   const dispatch = useDispatch();
@@ -14,18 +14,18 @@ const LineCharts = () => {
   }, [dispatch]);
 
 
-   // track sidebar collapse
-    const [collapsed, setCollapsed] = useState(() => {
-      const saved = localStorage.getItem('sidebarCollapsed');
-      return saved === null ? window.innerWidth < 1024 : JSON.parse(saved);
-    });
-  
-    useEffect(() => {
-      // update on toggle
-      const onToggle = e => setCollapsed(e.detail);
-      window.addEventListener('sidebar-collapsed', onToggle);
-      return () => window.removeEventListener('sidebar-collapsed', onToggle);
-    }, []);
+  // track sidebar collapse
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved === null ? window.innerWidth < 1024 : JSON.parse(saved);
+  });
+
+  useEffect(() => {
+    // update on toggle
+    const onToggle = e => setCollapsed(e.detail);
+    window.addEventListener('sidebar-collapsed', onToggle);
+    return () => window.removeEventListener('sidebar-collapsed', onToggle);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">

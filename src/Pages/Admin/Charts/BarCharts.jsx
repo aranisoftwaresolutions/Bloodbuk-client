@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AdminSidebar from "../../../Components/Admin/AdminSidebar";
 import { fetchBarCharts } from "../../../redux/slices/AdminChartSlices";
-import { BarChart } from "../../../components/Admin/Chart";
+import { BarChart } from "../../../Components/Admin/Chart";
 
 const BarCharts = () => {
     const dispatch = useDispatch();
